@@ -3,7 +3,7 @@
 //                                              //
 //                                              //
 //    Title(to)Tooltip       Sanford Gifford    //
-//    v1.1                      June 5, 2015    //
+//    v1.21                    July 15, 2015    //
 //                                              //
 //                                              //
 //////////////////////////////////////////////////
@@ -80,6 +80,10 @@ Some suggestions:
 /*
 	Changes:
 	
+	1.21 - July 15, 2015
+		- jQuery wrapper to 'window' is now created just once, stored, and used throughout the program
+		- width and height of viewport is now gotten from window as opposed to body (no longer need to set body/html height/width to 100%)
+	
 	1.2 - May 18, 2015
 		- Removed "deep" option, wasn't in the spirit of jQuery and complicated code needlessly
 		- Simplified architecture without sacrificing function
@@ -149,7 +153,8 @@ Some suggestions:
 	{
 		var opts = $.extend({}, DEFAULT_OPTIONS, options);
 		
-		var body = $("body");
+		var $body   = $("body") ;
+		var $window = $(window) ;
 		
 		this
 			.each(function(fadeOut)
@@ -233,9 +238,9 @@ Some suggestions:
 							myData.tipBox  = null;
 						}
 						
-						$(window).off("blur", WindowBlurred);
-						$(window).off("mousewheel DOMMouseScroll", MouseScrolled);
-						$(body).off("DOMNodeRemoved", DOMNodeRemoved);
+						$window.off("blur", WindowBlurred);
+						$window.off("mousewheel DOMMouseScroll", MouseScrolled);
+						$body.off("DOMNodeRemoved", DOMNodeRemoved);
 					}
 					
 					function revealTipBox()
@@ -251,7 +256,7 @@ Some suggestions:
 							if(myData.tipBox == null)
 							{
 								myData.tipBox = $("<div>")
-									.appendTo(body)
+									.appendTo($body)
 									.addClass(opts.className)
 									.html(myData.text)
 									.hide();
@@ -266,13 +271,13 @@ Some suggestions:
 							
 							if(targetPos.x < 0)
 								targetPos.x = 0;
-							else if(targetPos.x + myData.tipBox.outerWidth() > body.width())
-								targetPos.x = body.width() - myData.tipBox.outerWidth();
+							else if(targetPos.x + myData.tipBox.outerWidth() > $window.width())
+								targetPos.x = $window.width() - myData.tipBox.outerWidth();
 							
 							if(targetPos.y < 0)
 								targetPos.y = 0;
-							else if(targetPos.y + myData.tipBox.outerHeight() > body.height())
-								targetPos.y = body.height() - myData.tipBox.outerHeight();
+							else if(targetPos.y + myData.tipBox.outerHeight() > $window.height())
+								targetPos.y = $window.height() - myData.tipBox.outerHeight();
 							
 							myData.tipBox.css({
 								"left" : targetPos.x + "px",
@@ -293,9 +298,9 @@ Some suggestions:
 							
 							myData.tipBox.stop().fadeIn(opts.fadeTime);
 							
-							$(window).blur(WindowBlurred);
-							$(window).on("mousewheel DOMMouseScroll", MouseScrolled);
-							$(body).on("DOMNodeRemoved", DOMNodeRemoved);
+							$window.blur(WindowBlurred);
+							$window.on("mousewheel DOMMouseScroll", MouseScrolled);
+							$body.on("DOMNodeRemoved", DOMNodeRemoved);
 						}, opts.delay);
 					}
 					
