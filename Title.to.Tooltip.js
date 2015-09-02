@@ -116,6 +116,21 @@ Some suggestions:
 	var toolTipData = {};
 	var active = true;
 	
+	function checkExistingTooltips()
+	{
+		for(var t in toolTipData)
+		{
+			var tip = toolTipData[t].tipBox ;
+			var el  = toolTipData[t].el     ;
+			
+			if(el)
+			{
+				if(!jQuery.contains(document, el[0]) && tip) // is the el which this started on still attached to the DOM?
+					
+			}
+		}
+	}
+	
 	$.TtT = {};
 	
 	$.TtT.TurnOn = function()
@@ -159,168 +174,22 @@ Some suggestions:
 		this
 			.each(function(fadeOut)
 			{
-				var me   = $(this)                   ;
-				var myID = me.data(JQ_DATA_KEY_NAME) ;
+				var el = $(this)                   ;
+				var ID = el.data(JQ_DATA_KEY_NAME) ;
 				
-				if(typeof myID !== "undefined")
+				if(typeof ID !== "undefined")
 				{
-					var myData         = toolTipData[myID] ;
-					    myData.options = opts              ;
+					var tip      = toolTipData[ID] ;
+					    tip.opts = opts            ;
 					
 					if(opts.text)
 						myData.text = opts.text;
 					else
-						myData.text = me.attr(opts.attrName);
+						myData.text = el.attr(opts.attrName);
 				}
 				else
 				{
-					myID = elementID++;
-					me.data(JQ_DATA_KEY_NAME, myID);
-					
-					var myData = toolTipData[myID] = {
-						ID      : myID ,
-						text    : ""   ,
-						options : opts ,
-						tipBox  : null
-					};
-					
-					if(opts.text)
-						myData.text = opts.text;
-					else
-						myData.text = me.attr(opts.attrName);
-					
-					var funcDelay = null;
-					var mouseOver = false;
-					
-					// Event handlers.  Most of these are just calling removeTipBox, but by keeping them in separate functions we can easily tweak their behavior.
-					
-					function WindowBlurred(e)
-					{
-						removeTipBox(false);
-					}
-					
-					function MouseScrolled(e)
-					{
-						removeTipBox(true);
-					}
-					
-					function DOMNodeRemoved(e)
-					{
-						if(e.target === me[0])
-						{
-							removeTipBox();
-						}
-					}
-					
-					function removeTipBox(fadeOut)
-					{
-						if(funcDelay != null)
-							clearTimeout(funcDelay);
-						
-						funcDelay = null;
-						
-						if(myData.tipBox == null)
-							return;
-						
-						myData.tipBox.stop();
-						
-						if(fadeOut)
-						{
-							myData.tipBox.fadeOut(opts.fadeTime, function()
-							{
-								myData.tipBox.remove();
-								myData.tipBox = null;
-							});
-						}
-						else
-						{
-							myData.tipBox.remove();
-							myData.tipBox  = null;
-						}
-						
-						$window.off("blur", WindowBlurred);
-						$window.off("mousewheel DOMMouseScroll", MouseScrolled);
-						$body.off("DOMNodeRemoved", DOMNodeRemoved);
-					}
-					
-					function revealTipBox()
-					{
-						if(funcDelay != null)
-							clearTimeout(funcDelay);
-						
-						funcDelay = setTimeout(function()
-						{
-							if(!mouseOver)
-								return;
-							
-							if(myData.tipBox == null)
-							{
-								myData.tipBox = $("<div>")
-									.appendTo($body)
-									.addClass(opts.className)
-									.html(myData.text)
-									.hide();
-							}
-							
-							var itemPos = me.offset();
-							
-							var targetPos = {
-								x : ( (me.outerWidth() / 2) - (myData.tipBox.outerWidth() / 2) + itemPos.left ),
-								y : ( me.outerHeight()                                         + itemPos.top  )
-							};
-							
-							if(targetPos.x < 0)
-								targetPos.x = 0;
-							else if(targetPos.x + myData.tipBox.outerWidth() > $window.width())
-								targetPos.x = $window.width() - myData.tipBox.outerWidth();
-							
-							if(targetPos.y < 0)
-								targetPos.y = 0;
-							else if(targetPos.y + myData.tipBox.outerHeight() > $window.height())
-								targetPos.y = $window.height() - myData.tipBox.outerHeight();
-							
-							myData.tipBox.css({
-								"left" : targetPos.x + "px",
-								"top"  : targetPos.y + "px"
-							});
-							
-							if(opts.drawPointer && targetPos.y > itemPos.top)
-							{
-								var pointer = $("<div>")
-									.addClass(opts.pointerClassName)
-									.appendTo(myData.tipBox);
-									
-								pointer.css({
-									"left" : (itemPos.left - targetPos.x) + (me.outerWidth() / 2) - (pointer.outerWidth() / 2) + "px",
-									"top"  : "0px"
-								});
-							}
-							
-							myData.tipBox.stop().fadeIn(opts.fadeTime);
-							
-							$window.blur(WindowBlurred);
-							$window.on("mousewheel DOMMouseScroll", MouseScrolled);
-							$body.on("DOMNodeRemoved", DOMNodeRemoved);
-						}, opts.delay);
-					}
-					
-					me
-						.mouseover(function(e)
-						{
-							mouseOver = true;
-							
-							if(!active)
-								return;
-							
-							e.stopPropagation();
-							
-							revealTipBox();
-						})
-						.mouseout(  function() { mouseOver = false; removeTipBox(true);  } )
-						.mousedown( function() {                    removeTipBox(false); } )
-					;
-					
-					
+					new Tip(el, opts);
 				}
 			});
 		
@@ -328,5 +197,154 @@ Some suggestions:
 			this.removeAttr(opts.attrName);
 		
 		return this;
+	}
+	
+	function Tip(el, opts)
+	{
+		var tip    = this                  ;
+		this.el    = el                    ; // the element that the tip box is attached to
+		this.opts  = opts                  ; // the options used to instantiate the tip box
+		var tipBox = null                  ; // the element that we'll be creating for the tip box
+		var ID     = this.ID = elementID++ ; // keep a non-modifiable copy of ID private inside of object
+		
+		toolTipData[ID] = this; // include this tip  box in the registry
+		el.data(JQ_DATA_KEY_NAME, ID); // Attach the ID of this tip box to the element we're attaching it to for look ups
+		
+		if(opts.text)
+			this.text = opts.text;
+		else
+			this.text = el.attr(opts.attrName);
+		
+		var funcDelay = null;
+		var mouseOver = false;
+		
+		// Event handlers.  Most of these are just calling removeTipBox, but by keeping them in separate functions we can easily tweak their behavior.
+		
+		function WindowBlurred(e)
+		{
+			tip.removeTipBox(false);
+		}
+		
+		function MouseScrolled(e)
+		{
+			tip.removeTipBox(true);
+		}
+		
+		function DOMNodeRemoved(e)
+		{
+			// TODO:  MAKE SURE THIS IF STATEMENT IS VALID!!!!  I really think this could be our hanging tip problem
+			if(e.target === el[0])
+			{
+				tip.removeTipBox();
+			}
+		}
+		
+		this.removeTipBox = function(fadeOut)
+		{
+			if(funcDelay != null)
+				clearTimeout(funcDelay);
+			
+			funcDelay = null;
+			
+			if(tipBox == null)
+				return;
+			
+			tipBox.stop();
+			
+			if(fadeOut)
+			{
+				tipBox.fadeOut(opts.fadeTime, function()
+				{
+					tipBox.remove();
+					tipBox = null;
+				});
+			}
+			else
+			{
+				tipBox.remove();
+				tipBox  = null;
+			}
+			
+			$window.off( "blur",                      WindowBlurred  );
+			$window.off( "mousewheel DOMMouseScroll", MouseScrolled  );
+			$body.off(   "DOMNodeRemoved",            DOMNodeRemoved );
+		}
+		
+		this.revealTipBox = function()
+		{
+			if(funcDelay != null)
+				clearTimeout(funcDelay);
+			
+			funcDelay = setTimeout(function()
+			{
+				if(!mouseOver)
+					return;
+				
+				if(tipBox == null)
+				{
+					tipBox = $("<div>")
+						.appendTo($body)
+						.addClass(opts.className)
+						.html(tip.text)
+						.hide();
+				}
+				
+				var itemPos = el.offset();
+				
+				var targetPos = {
+					x : ( (el.outerWidth() / 2) - (tipBox.outerWidth() / 2) + itemPos.left ) ,
+					y : ( el.outerHeight()                                  + itemPos.top  )
+				};
+				
+				if(targetPos.x < 0)
+					targetPos.x = 0;
+				else if(targetPos.x + tipBox.outerWidth() > $window.width())
+					targetPos.x = $window.width() - tipBox.outerWidth();
+				
+				if(targetPos.y < 0)
+					targetPos.y = 0;
+				else if(targetPos.y + tipBox.outerHeight() > $window.height())
+					targetPos.y = $window.height() - tipBox.outerHeight();
+				
+				tipBox.css({
+					"left" : targetPos.x + "px",
+					"top"  : targetPos.y + "px"
+				});
+				
+				if(opts.drawPointer && targetPos.y > itemPos.top)
+				{
+					var pointer = $("<div>")
+						.addClass(opts.pointerClassName)
+						.appendTo(tipBox);
+						
+					pointer.css({
+						"left" : (itemPos.left - targetPos.x) + (el.outerWidth() / 2) - (pointer.outerWidth() / 2) + "px",
+						"top"  : "0px"
+					});
+				}
+				
+				tipBox.stop().fadeIn(opts.fadeTime);
+				
+				$window.blur(WindowBlurred);
+				$window.on("mousewheel DOMMouseScroll", MouseScrolled);
+				$body.on("DOMNodeRemoved", DOMNodeRemoved);
+			}, opts.delay);
+		}
+		
+		el
+			.mouseover(function(e)
+			{
+				mouseOver = true;
+				
+				if(!active)
+					return;
+				
+				e.stopPropagation();
+				
+				tip.revealTipBox();
+			})
+			.mouseout(  function() { mouseOver = false; tip.removeTipBox(true);  } )
+			.mousedown( function() {                    tip.removeTipBox(false); } )
+		;
 	}
 })(jQuery);
