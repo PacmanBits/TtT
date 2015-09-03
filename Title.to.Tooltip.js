@@ -77,27 +77,6 @@ Some suggestions:
 	you do want to keep!
 */
 
-/*
-	Changes:
-	
-	1.21 - July 15, 2015
-		- jQuery wrapper to 'window' is now created just once, stored, and used throughout the program
-		- width and height of viewport is now gotten from window as opposed to body (no longer need to set body/html height/width to 100%)
-	
-	1.2 - May 18, 2015
-		- Removed "deep" option, wasn't in the spirit of jQuery and complicated code needlessly
-		- Simplified architecture without sacrificing function
-		- Lowered memory footprint by limiting scope of several variables
-	
-	1.1 - May 5, 2015
-		Added "text" parameter.
-	
-	1.0 - Initial
-		fadeTime, delay, attrName, removeAttr,
-		deep, className, drawPointer,
-		pointerClassName
-*/
-
 
 (function($)
 {
@@ -112,9 +91,17 @@ Some suggestions:
 		pointerClassName : "TtTpointer"
 	};
 	
-	var elementID = 0;
-	var toolTipData = {};
-	var active = true;
+	var elementID   = 0    ;
+	var toolTipData = {}   ;
+	var active      = true ;
+	var $body              ;
+	var $window            ;
+	
+	$(function()
+	{
+		$body   = $("body") ;
+		$window = $(window) ;
+	});
 	
 	function checkExistingTooltips()
 	{
@@ -125,7 +112,7 @@ Some suggestions:
 			
 			if(el)
 			{
-				if(!jQuery.contains(document, el[0]) && tip) // is the el which this started on still attached to the DOM?
+//				if(!jQuery.contains(document, el[0]) && tip) // is the el which this started on still attached to the DOM?
 					
 			}
 		}
@@ -168,9 +155,6 @@ Some suggestions:
 	{
 		var opts = $.extend({}, DEFAULT_OPTIONS, options);
 		
-		var $body   = $("body") ;
-		var $window = $(window) ;
-		
 		this
 			.each(function(fadeOut)
 			{
@@ -183,9 +167,9 @@ Some suggestions:
 					    tip.opts = opts            ;
 					
 					if(opts.text)
-						myData.text = opts.text;
+						tip.text = opts.text;
 					else
-						myData.text = el.attr(opts.attrName);
+						tip.text = el.attr(opts.attrName);
 				}
 				else
 				{
@@ -232,6 +216,8 @@ Some suggestions:
 		
 		function DOMNodeRemoved(e)
 		{
+			console.log("DOMNodeRemoved: " + e.target.outerHTML);
+			console.log(e.target === el[0]);
 			// TODO:  MAKE SURE THIS IF STATEMENT IS VALID!!!!  I really think this could be our hanging tip problem
 			if(e.target === el[0])
 			{
