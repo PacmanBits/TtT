@@ -1,0 +1,57 @@
+<html>
+	<head>
+		<script src="jquery.js"></script>
+		<script src="Title.to.Tooltip.js"></script>
+		<style>
+			body
+			{
+				font-family: Arial,sans-serif;
+				background:  #333;
+			}
+			
+			#TtT
+			{
+				float:            left;
+				padding:          20px;
+				margin:           10px;
+				background:       #666;
+				color:            orange;
+				font-weight:      bold;
+				cursor:           pointer;
+				margin:           300px;
+			}
+			
+			.TtT
+			{
+				position:         absolute;
+				max-width:        300px;
+				padding:          20px;
+				border:           1px lightgrey solid;
+				border-radius:    5px;
+				background-color: white;
+				margin-top:       -10px;
+				pointer-events:   none;
+			}
+			
+			.TtTpointer
+			{
+				position:         absolute;
+				border-style:     solid;
+				border-width:     10px;
+				margin:           -20px 0 0 0;
+				border-color:     transparent transparent white transparent;
+				pointer-events:   none;
+			}
+		</style>
+		<script>
+			$(function()
+			{
+				$("#TtT")
+					.addTtT({ drawPointer : true });
+			});
+		</script>
+	</head>
+	<body>
+		<div id="TtT" title="Hello World">Mouse Over Me</div>
+	</body>
+</html>
