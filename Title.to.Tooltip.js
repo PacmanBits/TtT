@@ -216,8 +216,6 @@ Some suggestions:
 		
 		function DOMNodeRemoved(e)
 		{
-			console.log("DOMNodeRemoved: " + e.target.outerHTML);
-			console.log(e.target === el[0]);
 			// TODO:  MAKE SURE THIS IF STATEMENT IS VALID!!!!  I really think this could be our hanging tip problem
 			if(e.target === el[0])
 			{
@@ -263,8 +261,10 @@ Some suggestions:
 			
 			funcDelay = setTimeout(function()
 			{
-				if(!mouseOver)
+				if(!mouseOver || !$.contains(document, el[0])) // mouse still over and element still attached to DOM
 					return;
+				
+				
 				
 				if(tipBox == null)
 				{
