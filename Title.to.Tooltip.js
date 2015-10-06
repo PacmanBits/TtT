@@ -131,10 +131,28 @@ https://github.com/PacmanBits/TtT
 		toolTipData[ID] = this; // include this tip  box in the registry
 		el.data(JQ_DATA_KEY_NAME, ID); // Attach the ID of this tip box to the element we're attaching it to for look ups
 		
-		if(opts.text)
-			this.text = opts.text;
-		else
-			this.text = el.attr(opts.attrName);
+		switch(typeof opts.text)
+		{
+			case "function":
+				this.text = opts.text;
+				break;
+			case "string":
+				this.text = function() { return opts.text; };
+				break;
+			case "undefined":
+				if(opts.removeAttr)
+				{
+					var attrText = el.attr(opts.attrName);
+					this.text = function() { return attrText; };
+				}
+				else
+				{
+					this.text = function() { return el.attr(opts.attrName); };
+				}
+				break;
+			default:
+				throw "Type of 'options.text' was unexpected.  Must be function or string.";
+		}
 		
 		var funcDelay = null;
 		var mouseOver = false;
@@ -208,7 +226,7 @@ https://github.com/PacmanBits/TtT
 					tipBox = $("<div>")
 						.appendTo($body)
 						.addClass(opts.className)
-						.html(tip.text)
+						.html(tip.text())
 						.hide();
 				}
 				
