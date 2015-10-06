@@ -7,9 +7,10 @@
 			{
 				font-family: Arial,sans-serif;
 				background:  #333;
+				padding:          100px 0 0 100px;
 			}
 			
-			#TtT
+			.mouseOverer
 			{
 				float:            left;
 				padding:          20px;
@@ -18,7 +19,6 @@
 				color:            orange;
 				font-weight:      bold;
 				cursor:           pointer;
-				margin:           300px;
 			}
 			
 			.TtT
@@ -46,12 +46,24 @@
 		<script>
 			$(function()
 			{
-				$("#TtT")
-					.addTtT({ drawPointer : true, removeAttr : false });
+				$("#TtT_Title")
+					.addTtT({ drawPointer : true });
+				
+				$("#TtT_StringText")
+					.addTtT({ drawPointer : true, text : "Foobar" });
+				
+				$("#TtT_FunctionText")
+					.addTtT({ drawPointer : true, text : function()
+					{
+						var dt = new Date();
+						return "The time is\r\n" + dt.getHours() + ":" + dt.getMinutes() + ":" + dt.getSeconds();
+					}});
 			});
 		</script>
 	</head>
 	<body>
-		<div id="TtT" title="Hello World">Mouse Over Me</div>
+		<div class="mouseOverer" id="TtT_Title" title="Hello World">Mouse Over Me</div>
+		<div class="mouseOverer" id="TtT_StringText">Mouse Over Me</div>
+		<div class="mouseOverer" id="TtT_FunctionText">Mouse Over Me</div>
 	</body>
 </html>

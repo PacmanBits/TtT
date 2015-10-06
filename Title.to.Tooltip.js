@@ -219,8 +219,6 @@ https://github.com/PacmanBits/TtT
 				if(!mouseOver || !$.contains(document, el[0])) // mouse still over and element still attached to DOM
 					return;
 				
-				
-				
 				if(tipBox == null)
 				{
 					tipBox = $("<div>")
